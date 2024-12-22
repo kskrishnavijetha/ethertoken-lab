@@ -4,12 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 
 interface TokenDetails {
   name: string;
   symbol: string;
   initialSupply: string;
   decimals: string;
+  mintingSupport: boolean;
+  burningSupport: boolean;
+  pausingSupport: boolean;
+  unlimitedSupply: boolean;
 }
 
 const TokenCreator = () => {
@@ -19,6 +24,10 @@ const TokenCreator = () => {
     symbol: "",
     initialSupply: "",
     decimals: "18",
+    mintingSupport: false,
+    burningSupport: false,
+    pausingSupport: false,
+    unlimitedSupply: false,
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,6 +35,17 @@ const TokenCreator = () => {
     setTokenDetails((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleToggleChange = (feature: keyof TokenDetails) => {
+    setTokenDetails((prev) => ({
+      ...prev,
+      [feature]: !prev[feature],
+      // If unlimited supply is enabled, ensure minting support is also enabled
+      ...(feature === 'unlimitedSupply' && !prev.unlimitedSupply && { mintingSupport: true }),
+      // If minting support is disabled, ensure unlimited supply is also disabled
+      ...(feature === 'mintingSupport' && prev.mintingSupport && { unlimitedSupply: false }),
     }));
   };
 
@@ -109,6 +129,53 @@ const TokenCreator = () => {
                   className="bg-background/50 backdrop-blur-sm"
                 />
               </div>
+
+              <Card className="p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Minting Support</Label>
+                    <p className="text-sm text-muted-foreground">Enable minting for your token, only the owner can mint.</p>
+                  </div>
+                  <Switch
+                    checked={tokenDetails.mintingSupport}
+                    onCheckedChange={() => handleToggleChange('mintingSupport')}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Burning Support</Label>
+                    <p className="text-sm text-muted-foreground">Enable burning for your token.</p>
+                  </div>
+                  <Switch
+                    checked={tokenDetails.burningSupport}
+                    onCheckedChange={() => handleToggleChange('burningSupport')}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Pausing Support</Label>
+                    <p className="text-sm text-muted-foreground">Allows you to pause the token.</p>
+                  </div>
+                  <Switch
+                    checked={tokenDetails.pausingSupport}
+                    onCheckedChange={() => handleToggleChange('pausingSupport')}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Unlimited Supply</Label>
+                    <p className="text-sm text-muted-foreground">Enable unlimited supply for your token, requires minting support.</p>
+                  </div>
+                  <Switch
+                    checked={tokenDetails.unlimitedSupply}
+                    onCheckedChange={() => handleToggleChange('unlimitedSupply')}
+                    disabled={!tokenDetails.mintingSupport}
+                  />
+                </div>
+              </Card>
             </div>
 
             <Button type="submit" className="w-full">
@@ -136,6 +203,17 @@ const TokenCreator = () => {
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Decimals:</span>
                 <span className="font-medium">{tokenDetails.decimals}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Features:</span>
+                <span className="font-medium">
+                  {[
+                    tokenDetails.mintingSupport && "Minting",
+                    tokenDetails.burningSupport && "Burning",
+                    tokenDetails.pausingSupport && "Pausing",
+                    tokenDetails.unlimitedSupply && "Unlimited Supply"
+                  ].filter(Boolean).join(", ") || "None"}
+                </span>
               </div>
             </div>
           </Card>
