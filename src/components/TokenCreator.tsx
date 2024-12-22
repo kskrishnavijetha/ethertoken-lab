@@ -1,21 +1,15 @@
 import { useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
+import { WalletConnect } from "./wallet/WalletConnect";
+import { TokenFeatures } from "./token/TokenFeatures";
+import { TokenPreview } from "./token/TokenPreview";
+import { TokenDetails } from "./token/types";
 
-interface TokenDetails {
-  name: string;
-  symbol: string;
-  initialSupply: string;
-  decimals: string;
-  mintingSupport: boolean;
-  burningSupport: boolean;
-  pausingSupport: boolean;
-  unlimitedSupply: boolean;
-}
+const CREATION_FEE = "0.005";
 
 const TokenCreator = () => {
   const { toast } = useToast();
@@ -42,17 +36,14 @@ const TokenCreator = () => {
     setTokenDetails((prev) => ({
       ...prev,
       [feature]: !prev[feature],
-      // If unlimited supply is enabled, ensure minting support is also enabled
       ...(feature === 'unlimitedSupply' && !prev.unlimitedSupply && { mintingSupport: true }),
-      // If minting support is disabled, ensure unlimited supply is also disabled
       ...(feature === 'mintingSupport' && prev.mintingSupport && { unlimitedSupply: false }),
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation
     if (!tokenDetails.name || !tokenDetails.symbol || !tokenDetails.initialSupply) {
       toast({
         title: "Error",
@@ -62,19 +53,63 @@ const TokenCreator = () => {
       return;
     }
 
-    // Here you would typically interact with a smart contract
-    toast({
-      title: "Success",
-      description: "Token creation initiated. Please confirm the transaction in your wallet.",
-    });
+    if (typeof window.ethereum === "undefined") {
+      toast({
+        title: "Error",
+        description: "Please install MetaMask to create tokens",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const accounts = await window.ethereum.request({ method: "eth_accounts" });
+      if (accounts.length === 0) {
+        toast({
+          title: "Error",
+          description: "Please connect your wallet first",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Convert ETH to Wei (1 ETH = 10^18 Wei)
+      const feeInWei = BigInt(parseFloat(CREATION_FEE) * 1e18);
+      
+      // Send transaction
+      const transactionParameters = {
+        to: "0x0000000000000000000000000000000000000000", // Replace with your fee collection address
+        from: accounts[0],
+        value: "0x" + feeInWei.toString(16), // Convert to hex
+      };
+
+      await window.ethereum.request({
+        method: "eth_sendTransaction",
+        params: [transactionParameters],
+      });
+
+      toast({
+        title: "Success",
+        description: "Token creation initiated. Please confirm the transaction in your wallet.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create token",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-xl space-y-8 animate-fadeIn">
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">Create ERC20 Token</h1>
-          <p className="text-muted-foreground">Deploy your own ERC20 token in minutes</p>
+        <div className="flex justify-between items-center">
+          <div className="text-left space-y-2">
+            <h1 className="text-4xl font-bold tracking-tight">Create ERC20 Token</h1>
+            <p className="text-muted-foreground">Deploy your own ERC20 token in minutes</p>
+          </div>
+          <WalletConnect />
         </div>
 
         <Card className="p-6 backdrop-blur-sm bg-card/30 border border-border/50">
@@ -130,94 +165,24 @@ const TokenCreator = () => {
                 />
               </div>
 
-              <Card className="p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Minting Support</Label>
-                    <p className="text-sm text-muted-foreground">Enable minting for your token, only the owner can mint.</p>
-                  </div>
-                  <Switch
-                    checked={tokenDetails.mintingSupport}
-                    onCheckedChange={() => handleToggleChange('mintingSupport')}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Burning Support</Label>
-                    <p className="text-sm text-muted-foreground">Enable burning for your token.</p>
-                  </div>
-                  <Switch
-                    checked={tokenDetails.burningSupport}
-                    onCheckedChange={() => handleToggleChange('burningSupport')}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Pausing Support</Label>
-                    <p className="text-sm text-muted-foreground">Allows you to pause the token.</p>
-                  </div>
-                  <Switch
-                    checked={tokenDetails.pausingSupport}
-                    onCheckedChange={() => handleToggleChange('pausingSupport')}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Unlimited Supply</Label>
-                    <p className="text-sm text-muted-foreground">Enable unlimited supply for your token, requires minting support.</p>
-                  </div>
-                  <Switch
-                    checked={tokenDetails.unlimitedSupply}
-                    onCheckedChange={() => handleToggleChange('unlimitedSupply')}
-                    disabled={!tokenDetails.mintingSupport}
-                  />
-                </div>
-              </Card>
+              <TokenFeatures 
+                tokenDetails={tokenDetails}
+                onToggleChange={handleToggleChange}
+              />
             </div>
 
-            <Button type="submit" className="w-full">
-              Create Token
-            </Button>
+            <div className="space-y-2">
+              <Button type="submit" className="w-full">
+                Create Token ({CREATION_FEE} ETH + gas)
+              </Button>
+              <p className="text-sm text-center text-muted-foreground">
+                Creation fee: {CREATION_FEE} ETH + network gas fees
+              </p>
+            </div>
           </form>
         </Card>
 
-        {tokenDetails.name && (
-          <Card className="p-6 backdrop-blur-sm bg-card/30 border border-border/50 animate-fadeIn">
-            <h2 className="text-xl font-semibold mb-4">Token Preview</h2>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Name:</span>
-                <span className="font-medium">{tokenDetails.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Symbol:</span>
-                <span className="font-medium">{tokenDetails.symbol}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Supply:</span>
-                <span className="font-medium">{tokenDetails.initialSupply}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Decimals:</span>
-                <span className="font-medium">{tokenDetails.decimals}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Features:</span>
-                <span className="font-medium">
-                  {[
-                    tokenDetails.mintingSupport && "Minting",
-                    tokenDetails.burningSupport && "Burning",
-                    tokenDetails.pausingSupport && "Pausing",
-                    tokenDetails.unlimitedSupply && "Unlimited Supply"
-                  ].filter(Boolean).join(", ") || "None"}
-                </span>
-              </div>
-            </div>
-          </Card>
-        )}
+        {tokenDetails.name && <TokenPreview tokenDetails={tokenDetails} />}
       </div>
     </div>
   );
