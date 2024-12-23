@@ -108,14 +108,13 @@ const TokenCreator = () => {
       </div>
       
       <img 
-        src="/ethereum-logo.png" 
+        src="/lovable-uploads/6e748589-2477-49e4-ac3b-a7bba950af18.png" 
         alt="Ethereum Logo" 
-        className="w-16 h-16 mb-6"
+        className="w-24 h-24 mb-6"
       />
       
       <div className="w-full max-w-xl space-y-8 animate-fadeIn">
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight">Ethereum Token Creator</h1>
           <p className="text-muted-foreground">Create and deploy your own ERC20 token on Ethereum in just 1 minute</p>
         </div>
 
