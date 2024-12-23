@@ -102,21 +102,21 @@ const TokenCreator = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+    <div className="min-h-screen flex flex-col items-center p-4 bg-background">
       <div className="absolute top-4 right-4">
         <WalletConnect />
       </div>
+      
+      <img 
+        src="/ethereum-logo.png" 
+        alt="Ethereum Logo" 
+        className="w-16 h-16 mb-6"
+      />
+      
       <div className="w-full max-w-xl space-y-8 animate-fadeIn">
-        <div className="flex items-center gap-4">
-          <img 
-            src="/ethereum-logo.png" 
-            alt="Ethereum Logo" 
-            className="w-12 h-12"
-          />
-          <div className="text-left space-y-2">
-            <h1 className="text-4xl font-bold tracking-tight">Ethereum Token Creator</h1>
-            <p className="text-muted-foreground">Create and deploy your own ERC20 token on Ethereum in just 1 minute</p>
-          </div>
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold tracking-tight">Ethereum Token Creator</h1>
+          <p className="text-muted-foreground">Create and deploy your own ERC20 token on Ethereum in just 1 minute</p>
         </div>
 
         <Card className="p-6 backdrop-blur-sm bg-card/30 border border-border/50">
