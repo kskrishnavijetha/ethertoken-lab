@@ -105,18 +105,13 @@ const TokenCreator = () => {
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-xl space-y-8 animate-fadeIn">
         <div className="flex justify-between items-center">
-          <div className="text-left space-y-2 flex items-center gap-4">
-            <div className="w-12 h-12 flex items-center justify-center rounded-full bg-token-100">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-token-600">
-                <path d="M11.767 19.089c4.924.868 6.14-6.025 1.216-6.894m-1.216 6.894L5.86 18.047m5.908 1.042-.347 1.97m1.563-8.864c4.924.869 6.14-6.025 1.215-6.893m-1.215 6.893-3.94-.694m5.155-6.2L8.29 4.26m5.908 1.042.348-1.97M7.48 20.364l3.126-17.727"/>
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold tracking-tight">Ethereum Token Creator</h1>
-              <p className="text-muted-foreground">Create and deploy your own ERC20 token on Ethereum in just 1 minute with low fee</p>
-            </div>
+          <div className="text-left space-y-2">
+            <h1 className="text-4xl font-bold tracking-tight">Ethereum Token Creator</h1>
+            <p className="text-muted-foreground">Create and deploy your own ERC20 token on Ethereum in just 1 minute with low fee</p>
           </div>
-          <WalletConnect />
+          <div className="absolute top-4 right-4">
+            <WalletConnect />
+          </div>
         </div>
 
         <Card className="p-6 backdrop-blur-sm bg-card/30 border border-border/50">
