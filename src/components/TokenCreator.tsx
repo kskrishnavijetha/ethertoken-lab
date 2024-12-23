@@ -92,7 +92,7 @@ const TokenCreator = () => {
         title: "Success",
         description: "Token creation initiated. Please confirm the transaction in your wallet.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to create token",
