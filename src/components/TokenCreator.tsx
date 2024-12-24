@@ -8,6 +8,7 @@ import { TokenPreview } from "./token/TokenPreview";
 import { TokenAdvancedOptions } from "./token/TokenAdvancedOptions";
 import { TokenInstructions } from "./token/TokenInstructions";
 import { TokenForm } from "./token/TokenForm";
+import { TokenFAQ } from "./token/TokenFAQ";
 import { TokenDetails } from "./token/types";
 
 const CREATION_FEE = "0.005";
@@ -152,6 +153,8 @@ const TokenCreator = () => {
         </Card>
 
         {tokenDetails.name && <TokenPreview tokenDetails={tokenDetails} />}
+        
+        <TokenFAQ />
       </div>
     </div>
   );
