@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { WalletConnect } from "./wallet/WalletConnect";
 import { TokenFeatures } from "./token/TokenFeatures";
 import { TokenPreview } from "./token/TokenPreview";
+import { TokenAdvancedOptions } from "./token/TokenAdvancedOptions";
 import { TokenDetails } from "./token/types";
 
 const CREATION_FEE = "0.005";
@@ -39,6 +40,11 @@ const TokenCreator = () => {
       ...(feature === 'unlimitedSupply' && !prev.unlimitedSupply && { mintingSupport: true }),
       ...(feature === 'mintingSupport' && prev.mintingSupport && { unlimitedSupply: false }),
     }));
+  };
+
+  const handleDistributionChange = (wallets: any[]) => {
+    // Handle wallet distribution changes
+    console.log('Wallet distribution updated:', wallets);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -175,6 +181,10 @@ const TokenCreator = () => {
               <TokenFeatures 
                 tokenDetails={tokenDetails}
                 onToggleChange={handleToggleChange}
+              />
+
+              <TokenAdvancedOptions 
+                onDistributionChange={handleDistributionChange}
               />
             </div>
 
