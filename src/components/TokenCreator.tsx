@@ -83,7 +83,7 @@ const TokenCreator = () => {
       }
 
       // Convert creation fee to Wei
-      const feeInWei = BigInt(parseFloat(CREATION_FEE) * 1e18);
+      const feeInWei = ethers.utils.parseEther(CREATION_FEE);
       
       // Request contract deployment
       const provider = new ethers.providers.Web3Provider(window.ethereum);
