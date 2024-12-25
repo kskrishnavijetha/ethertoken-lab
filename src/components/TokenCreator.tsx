@@ -12,12 +12,14 @@ import { TokenForm } from "./token/TokenForm";
 import { TokenFAQ } from "./token/TokenFAQ";
 import { TokenAbout } from "./token/TokenAbout";
 import { TokenDetails } from "./token/types";
-import { tokenBytecode, ERC20_ABI } from "../contracts/TokenContract";
+import { useWalletConnection } from "@/hooks/useWalletConnection";
+import { deployToken } from "@/services/tokenDeployment";
 
 const CREATION_FEE = "0.005";
 
 const TokenCreator = () => {
   const { toast } = useToast();
+  const { account, connectWallet } = useWalletConnection();
   const [tokenDetails, setTokenDetails] = useState<TokenDetails>({
     name: "",
     symbol: "",
@@ -62,18 +64,9 @@ const TokenCreator = () => {
       return;
     }
 
-    if (typeof window.ethereum === "undefined") {
-      toast({
-        title: "Error",
-        description: "Please install MetaMask to create tokens",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const accounts = await window.ethereum.request({ method: "eth_accounts" });
-      if (accounts.length === 0) {
+    if (!account) {
+      const connectedAccount = await connectWallet();
+      if (!connectedAccount) {
         toast({
           title: "Error",
           description: "Please connect your wallet first",
@@ -81,52 +74,18 @@ const TokenCreator = () => {
         });
         return;
       }
+    }
 
-      // Convert creation fee to Wei
-      const feeInWei = ethers.utils.parseEther(CREATION_FEE);
-      
-      // Request contract deployment
+    try {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      
-      // Deploy the token contract
-      const factory = new ethers.ContractFactory(
-        ERC20_ABI,
-        tokenBytecode,
-        signer
-      );
 
       toast({
         title: "Deploying Token",
         description: "Please confirm the transaction in your wallet...",
       });
 
-      const contract = await factory.deploy(
-        tokenDetails.name,
-        tokenDetails.symbol,
-        ethers.utils.parseUnits(tokenDetails.initialSupply, tokenDetails.decimals),
-        tokenDetails.decimals,
-        {
-          value: feeInWei,
-        }
-      );
-
-      // Wait for deployment to complete
-      await contract.deployed();
-
-      // If minting is supported and initial supply is set, mint tokens
-      if (tokenDetails.mintingSupport && tokenDetails.initialSupply) {
-        toast({
-          title: "Minting Tokens",
-          description: "Please confirm the minting transaction...",
-        });
-
-        const mintTx = await contract.mint(
-          accounts[0],
-          ethers.utils.parseUnits(tokenDetails.initialSupply, tokenDetails.decimals)
-        );
-        await mintTx.wait();
-      }
+      const contract = await deployToken(tokenDetails, CREATION_FEE, signer);
 
       toast({
         title: "Success",
@@ -179,7 +138,7 @@ const TokenCreator = () => {
 
             <div className="space-y-2">
               <Button type="submit" className="w-full">
-                Create Token ({CREATION_FEE} ETH + gas)
+                {!account ? "Connect Wallet to Create Token" : `Create Token (${CREATION_FEE} ETH + gas)`}
               </Button>
               <p className="text-sm text-center text-muted-foreground">
                 Creation fee: {CREATION_FEE} ETH + network gas fees
