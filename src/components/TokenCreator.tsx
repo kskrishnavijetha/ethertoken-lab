@@ -16,12 +16,6 @@ import { tokenBytecode, ERC20_ABI } from "../contracts/TokenContract";
 
 const CREATION_FEE = "0.005";
 
-// ERC20 Token Contract ABI (minimal version for deployment and minting)
-const ERC20_ABI = [
-  "constructor(string name, string symbol, uint256 initialSupply, uint8 decimals)",
-  "function mint(address to, uint256 amount)",
-];
-
 const TokenCreator = () => {
   const { toast } = useToast();
   const [tokenDetails, setTokenDetails] = useState<TokenDetails>({
