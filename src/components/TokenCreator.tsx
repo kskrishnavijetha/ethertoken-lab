@@ -14,6 +14,12 @@ import { TokenDetails } from "./token/types";
 
 const CREATION_FEE = "0.005";
 
+// ERC20 Token Contract ABI (minimal version for deployment and minting)
+const ERC20_ABI = [
+  "constructor(string name, string symbol, uint256 initialSupply, uint8 decimals)",
+  "function mint(address to, uint256 amount)",
+];
+
 const TokenCreator = () => {
   const { toast } = useToast();
   const [tokenDetails, setTokenDetails] = useState<TokenDetails>({
@@ -80,22 +86,55 @@ const TokenCreator = () => {
         return;
       }
 
+      // Convert creation fee to Wei
       const feeInWei = BigInt(parseFloat(CREATION_FEE) * 1e18);
       
-      const transactionParameters = {
-        to: "0x0000000000000000000000000000000000000000",
-        from: accounts[0],
-        value: "0x" + feeInWei.toString(16),
-      };
+      // Request contract deployment
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      
+      // Deploy the token contract
+      const factory = new ethers.ContractFactory(
+        ERC20_ABI,
+        tokenBytecode, // This would need to be defined or imported
+        signer
+      );
 
-      await window.ethereum.request({
-        method: "eth_sendTransaction",
-        params: [transactionParameters],
+      toast({
+        title: "Deploying Token",
+        description: "Please confirm the transaction in your wallet...",
       });
+
+      const contract = await factory.deploy(
+        tokenDetails.name,
+        tokenDetails.symbol,
+        ethers.utils.parseUnits(tokenDetails.initialSupply, tokenDetails.decimals),
+        tokenDetails.decimals,
+        {
+          value: feeInWei,
+        }
+      );
+
+      // Wait for deployment to complete
+      await contract.deployed();
+
+      // If minting is supported and initial supply is set, mint tokens
+      if (tokenDetails.mintingSupport && tokenDetails.initialSupply) {
+        toast({
+          title: "Minting Tokens",
+          description: "Please confirm the minting transaction...",
+        });
+
+        const mintTx = await contract.mint(
+          accounts[0],
+          ethers.utils.parseUnits(tokenDetails.initialSupply, tokenDetails.decimals)
+        );
+        await mintTx.wait();
+      }
 
       toast({
         title: "Success",
-        description: "Token creation initiated. Please confirm the transaction in your wallet.",
+        description: `Token ${tokenDetails.symbol} has been created and minted!`,
       });
     } catch (error: any) {
       toast({
