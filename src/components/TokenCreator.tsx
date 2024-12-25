@@ -30,6 +30,10 @@ const TokenCreator = () => {
     pausingSupport: false,
     unlimitedSupply: false,
   });
+  const [deployedContract, setDeployedContract] = useState<{
+    address: string;
+    txHash: string;
+  } | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -86,6 +90,12 @@ const TokenCreator = () => {
       });
 
       const contract = await deployToken(tokenDetails, CREATION_FEE, signer);
+      const receipt = await contract.deployTransaction.wait();
+
+      setDeployedContract({
+        address: contract.address,
+        txHash: receipt.transactionHash,
+      });
 
       toast({
         title: "Success",
@@ -146,6 +156,36 @@ const TokenCreator = () => {
             </div>
           </form>
         </Card>
+
+        {deployedContract && (
+          <Card className="p-6 backdrop-blur-sm bg-card/30 border border-border/50 animate-fadeIn">
+            <h2 className="text-xl font-semibold mb-4">Deployment Details</h2>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Contract Address:</span>
+                <a
+                  href={`https://etherscan.io/address/${deployedContract.address}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  {`${deployedContract.address.slice(0, 6)}...${deployedContract.address.slice(-4)}`}
+                </a>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Transaction Hash:</span>
+                <a
+                  href={`https://etherscan.io/tx/${deployedContract.txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  {`${deployedContract.txHash.slice(0, 6)}...${deployedContract.txHash.slice(-4)}`}
+                </a>
+              </div>
+            </div>
+          </Card>
+        )}
 
         {tokenDetails.name && <TokenPreview tokenDetails={tokenDetails} />}
         
