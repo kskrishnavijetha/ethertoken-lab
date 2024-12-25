@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ethers } from "ethers";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,6 +12,7 @@ import { TokenForm } from "./token/TokenForm";
 import { TokenFAQ } from "./token/TokenFAQ";
 import { TokenAbout } from "./token/TokenAbout";
 import { TokenDetails } from "./token/types";
+import { tokenBytecode, ERC20_ABI } from "../contracts/TokenContract";
 
 const CREATION_FEE = "0.005";
 
@@ -96,7 +98,7 @@ const TokenCreator = () => {
       // Deploy the token contract
       const factory = new ethers.ContractFactory(
         ERC20_ABI,
-        tokenBytecode, // This would need to be defined or imported
+        tokenBytecode,
         signer
       );
 
